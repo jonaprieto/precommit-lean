@@ -48,6 +48,17 @@ Consumers need SSH access to the private repository (or may substitute an
 authenticated HTTPS URL). The Python hook has no third-party dependencies;
 the semantic check itself runs in the target project's Lean toolchain.
 
+The shared GitHub Actions setup is available as a composite action:
+
+```yaml
+- uses: jonaprieto/precommit-lean/.github/actions/precommit@v0.1.1
+  with:
+    token: ${{ secrets.ECOSYSTEM_READ_TOKEN || github.token }}
+```
+
+Pass `skip: lean-axioms` for a fast quality job and `hooks: lean-axioms`
+after the repository's Lean build.
+
 If Python is unavailable, standard `pre-commit` cannot run. Put the same Lean
 driver behind a project-local Git hook or Lake tool instead; a generic
 `language: system` hook cannot reliably locate the consumer project's Lake
