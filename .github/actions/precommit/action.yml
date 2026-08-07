@@ -24,16 +24,17 @@ runs:
       shell: bash
       env:
         ECOSYSTEM_READ_TOKEN: ${{ inputs.token }}
-        GIT_CONFIG_GLOBAL: ${{ runner.temp }}/precommit-lean/gitconfig
+        HOME: ${{ runner.temp }}/precommit-lean/home
       run: |
         test -n "$ECOSYSTEM_READ_TOKEN"
+        mkdir -p "$HOME"
         git config --global url."https://x-access-token:$ECOSYSTEM_READ_TOKEN@github.com/".insteadOf "https://github.com/"
     - name: Run configured hooks
       shell: bash
       env:
         PRECOMMIT_HOOKS: ${{ inputs.hooks }}
         PRECOMMIT_SKIP: ${{ inputs.skip }}
-        GIT_CONFIG_GLOBAL: ${{ runner.temp }}/precommit-lean/gitconfig
+        HOME: ${{ runner.temp }}/precommit-lean/home
       run: |
         if [ -n "$PRECOMMIT_SKIP" ]; then
           export SKIP="$PRECOMMIT_SKIP"
@@ -46,4 +47,4 @@ runs:
     - name: Remove temporary credentials
       if: ${{ always() }}
       shell: bash
-      run: rm -f "$RUNNER_TEMP/precommit-lean/gitconfig"
+      run: rm -f "$RUNNER_TEMP/precommit-lean/home/.gitconfig"
