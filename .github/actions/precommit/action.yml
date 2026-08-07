@@ -1,0 +1,44 @@
+name: Run pre-commit
+description: Install and run the repository's pinned pre-commit hooks
+inputs:
+  token:
+    description: Read token for private precommit-lean access
+    required: true
+  hooks:
+    description: Space-separated hook IDs to run; empty runs every hook
+    required: false
+    default: ""
+  skip:
+    description: Comma-separated hook IDs to skip
+    required: false
+    default: ""
+runs:
+  using: composite
+  steps:
+    - name: Install pre-commit
+      shell: bash
+      run: |
+        python3 -m venv "$RUNNER_TEMP/precommit-lean"
+        "$RUNNER_TEMP/precommit-lean/bin/python" -m pip install pre-commit
+    - name: Authenticate private hook repository
+      shell: bash
+      env:
+        ECOSYSTEM_READ_TOKEN: ${{ inputs.token }}
+      run: |
+        test -n "$ECOSYSTEM_READ_TOKEN"
+        git config --global --unset-all http."https://github.com/".extraheader || true
+        git config --global url."https://x-access-token:$ECOSYSTEM_READ_TOKEN@github.com/".insteadOf "https://github.com/"
+    - name: Run configured hooks
+      shell: bash
+      env:
+        PRECOMMIT_HOOKS: ${{ inputs.hooks }}
+        PRECOMMIT_SKIP: ${{ inputs.skip }}
+      run: |
+        if [ -n "$PRECOMMIT_SKIP" ]; then
+          export SKIP="$PRECOMMIT_SKIP"
+        fi
+        if [ -n "$PRECOMMIT_HOOKS" ]; then
+          "$RUNNER_TEMP/precommit-lean/bin/pre-commit" run $PRECOMMIT_HOOKS --all-files
+        else
+          "$RUNNER_TEMP/precommit-lean/bin/pre-commit" run --all-files
+        fi

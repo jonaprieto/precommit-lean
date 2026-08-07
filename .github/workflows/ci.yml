@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install package and pre-commit
+        run: python3 -m pip install pre-commit .
+      - name: Validate hook configuration
+        run: pre-commit validate-config
+      - name: Run self-check
+        run: python3 tests/self_check.py
+      - name: Compile package
+        run: python3 -m compileall -q precommit_lean
