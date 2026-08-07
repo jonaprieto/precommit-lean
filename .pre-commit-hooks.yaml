@@ -1,0 +1,23 @@
+- id: lean-style
+  name: Lean style
+  description: Check Lean files for 100-column lines, trailing whitespace, and tabs.
+  entry: precommit-lean-style
+  language: python
+  files: \.lean$
+  pass_filenames: false
+
+- id: lean-axioms
+  name: Lean axioms
+  description: Build a Lean target and reject unexpected proof axioms.
+  entry: precommit-lean-axioms
+  language: python
+  files: \.lean$
+  pass_filenames: false
+
+- id: lean-modules
+  name: Lean module paths
+  description: Check that Lean file paths map to valid module names.
+  entry: precommit-lean-modules
+  language: python
+  files: \.lean$
+  pass_filenames: false

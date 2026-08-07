@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "precommit-lean"
+version = "0.1.0"
+description = "Small pre-commit hooks for Lean 4 projects."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Jonaprieto" }]
+
+[project.scripts]
+precommit-lean-style = "precommit_lean.style:main"
+precommit-lean-axioms = "precommit_lean.axioms:main"
+precommit-lean-modules = "precommit_lean.modules:main"
+
+[tool.setuptools.packages.find]
+include = ["precommit_lean*"]
+
+[tool.setuptools.package-data]
+precommit_lean = ["*.lean"]
