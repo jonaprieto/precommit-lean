@@ -2,8 +2,6 @@
 
 Private [pre-commit](https://pre-commit.com/) hooks for Lean 4 repositories.
 
-Version: `v0.1.3`
-
 ## Use
 
 ```yaml
