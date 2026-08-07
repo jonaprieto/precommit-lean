@@ -30,10 +30,15 @@ def main() -> int:
         action="store_true",
         help="reject non-ASCII characters in Lean paths and source",
     )
+    parser.add_argument(
+        "files",
+        nargs="*",
+        help="Lean files to check; defaults to all tracked Lean files",
+    )
     args = parser.parse_args()
 
     root = repository_root()
-    files = subprocess.check_output(
+    files = args.files or subprocess.check_output(
         ["git", "ls-files", "--", "*.lean"], cwd=root, text=True
     ).splitlines()
     violations = []
