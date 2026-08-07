@@ -28,7 +28,7 @@ repos:
   - id: detect-private-key
 
 - repo: git@github.com:jonaprieto/precommit-lean
-  rev: v0.1.2
+  rev: v0.1.3
   hooks:
   - id: lean-style
   - id: lean-axioms
@@ -54,7 +54,7 @@ invocation without file arguments checks all tracked Lean files.
 The shared GitHub Actions setup is available as a composite action:
 
 ```yaml
-- uses: jonaprieto/precommit-lean/.github/actions/precommit@v0.1.2
+- uses: jonaprieto/precommit-lean/.github/actions/precommit@v0.1.3
   with:
     token: ${{ secrets.ECOSYSTEM_READ_TOKEN || github.token }}
 ```
