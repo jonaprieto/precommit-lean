@@ -28,7 +28,7 @@ repos:
   - id: detect-private-key
 
 - repo: git@github.com:jonaprieto/precommit-lean
-  rev: v0.1.1
+  rev: v0.1.2
   hooks:
   - id: lean-style
   - id: lean-axioms
@@ -48,10 +48,13 @@ Consumers need SSH access to the private repository (or may substitute an
 authenticated HTTPS URL). The Python hook has no third-party dependencies;
 the semantic check itself runs in the target project's Lean toolchain.
 
+The style and module hooks honor pre-commit's selected file set. Direct
+invocation without file arguments checks all tracked Lean files.
+
 The shared GitHub Actions setup is available as a composite action:
 
 ```yaml
-- uses: jonaprieto/precommit-lean/.github/actions/precommit@v0.1.1
+- uses: jonaprieto/precommit-lean/.github/actions/precommit@v0.1.2
   with:
     token: ${{ secrets.ECOSYSTEM_READ_TOKEN || github.token }}
 ```
