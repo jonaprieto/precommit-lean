@@ -19,20 +19,21 @@ runs:
       shell: bash
       run: |
         python3 -m venv "$RUNNER_TEMP/precommit-lean"
-        "$RUNNER_TEMP/precommit-lean/bin/python" -m pip install pre-commit
+        "$RUNNER_TEMP/precommit-lean/bin/python" -m pip install "pre-commit==4.6.1"
     - name: Authenticate private hook repository
       shell: bash
       env:
         ECOSYSTEM_READ_TOKEN: ${{ inputs.token }}
+        GIT_CONFIG_GLOBAL: ${{ runner.temp }}/precommit-lean/gitconfig
       run: |
         test -n "$ECOSYSTEM_READ_TOKEN"
-        git config --global --unset-all http."https://github.com/".extraheader || true
         git config --global url."https://x-access-token:$ECOSYSTEM_READ_TOKEN@github.com/".insteadOf "https://github.com/"
     - name: Run configured hooks
       shell: bash
       env:
         PRECOMMIT_HOOKS: ${{ inputs.hooks }}
         PRECOMMIT_SKIP: ${{ inputs.skip }}
+        GIT_CONFIG_GLOBAL: ${{ runner.temp }}/precommit-lean/gitconfig
       run: |
         if [ -n "$PRECOMMIT_SKIP" ]; then
           export SKIP="$PRECOMMIT_SKIP"
@@ -42,3 +43,7 @@ runs:
         else
           "$RUNNER_TEMP/precommit-lean/bin/pre-commit" run --all-files
         fi
+    - name: Remove temporary credentials
+      if: ${{ always() }}
+      shell: bash
+      run: rm -f "$RUNNER_TEMP/precommit-lean/gitconfig"

@@ -15,9 +15,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Install package and pre-commit
-        run: python3 -m pip install pre-commit .
+        run: python3 -m pip install "pre-commit==4.6.1" .
       - name: Validate hook configuration
         run: pre-commit validate-config
+      - name: Run generic hooks
+        run: pre-commit run --all-files
       - name: Run self-check
         run: python3 tests/self_check.py
       - name: Compile package

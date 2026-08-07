@@ -4,7 +4,6 @@
   entry: precommit-lean-style
   language: python
   files: \.lean$
-  pass_filenames: false
 
 - id: lean-axioms
   name: Lean axioms
@@ -20,4 +19,3 @@
   entry: precommit-lean-modules
   language: python
   files: \.lean$
-  pass_filenames: false

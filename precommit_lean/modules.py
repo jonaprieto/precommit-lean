@@ -26,9 +26,14 @@ def violations(files: list[str]) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.parse_args()
+    parser.add_argument(
+        "files",
+        nargs="*",
+        help="Lean files to check; defaults to all tracked Lean files",
+    )
+    args = parser.parse_args()
     root = repository_root()
-    files = subprocess.check_output(
+    files = args.files or subprocess.check_output(
         ["git", "ls-files", "--", "*.lean"], cwd=root, text=True
     ).splitlines()
     failures = violations(files)
@@ -43,4 +48,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-
