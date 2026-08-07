@@ -2,9 +2,9 @@
 
 Private [pre-commit](https://pre-commit.com/) hooks for Lean 4 repositories.
 
-## Use
+Version: `v0.1.3`
 
-Add this to a repository's `.pre-commit-config.yaml`:
+## Use
 
 ```yaml
 repos:
@@ -13,64 +13,31 @@ repos:
   hooks:
   - id: trailing-whitespace
   - id: end-of-file-fixer
-  - id: mixed-line-ending
-    args: [--fix=lf]
-  - id: check-merge-conflict
-  - id: check-added-large-files
-  - id: check-case-conflict
-  - id: check-symlinks
-  - id: check-json
-  - id: check-toml
   - id: check-yaml
-  - id: check-xml
-  - id: fix-byte-order-marker
-  - id: check-executables-have-shebangs
-  - id: detect-private-key
 
-- repo: git@github.com:jonaprieto/precommit-lean
+- repo: https://github.com/jonaprieto/precommit-lean
   rev: v0.1.3
   hooks:
   - id: lean-style
+  - id: lean-modules
   - id: lean-axioms
     args:
     - --target=TermColor.Diagnostics.Properties
     - --namespace=TermColor.Diagnostics.Properties
-    - --native=line_split_example
-    - --native=fix_it_replaces_utf8_bytes
-    - --native=fix_it_render_example
-  - id: lean-modules
 ```
 
-For an ASCII-only policy, add `args: [--ascii-only]` under `lean-style`.
-
-`precommit-lean` owns Lean-specific checks; it does not fork generic hooks.
-Consumers need SSH access to the private repository (or may substitute an
-authenticated HTTPS URL). The Python hook has no third-party dependencies;
-the semantic check itself runs in the target project's Lean toolchain.
-
-The style and module hooks honor pre-commit's selected file set. Direct
-invocation without file arguments checks all tracked Lean files.
-
-The shared GitHub Actions setup is available as a composite action:
+The composite GitHub Action runs the same hooks after a Lean build:
 
 ```yaml
 - uses: jonaprieto/precommit-lean/.github/actions/precommit@v0.1.3
   with:
-    token: ${{ secrets.ECOSYSTEM_READ_TOKEN || github.token }}
+    token: ${{ secrets.ECOSYSTEM_READ_TOKEN }}
 ```
 
-Pass `skip: lean-axioms` for a fast quality job and `hooks: lean-axioms`
-after the repository's Lean build.
+`lean-style` checks line width, trailing whitespace, and tabs. `lean-modules` validates Lean
+module paths. `lean-axioms` loads a configured Lake target and checks declaration dependencies.
+`--ascii-only` is available for projects that require ASCII source.
 
-If Python is unavailable, standard `pre-commit` cannot run. Put the same Lean
-driver behind a project-local Git hook or Lake tool instead; a generic
-`language: system` hook cannot reliably locate the consumer project's Lake
-artifacts from the hook checkout.
+## License
 
-`lean-style` checks tracked Lean files for 100-column lines, trailing whitespace,
-and tabs. `lean-axioms` builds a configured Lake target, imports the configured
-module with Lean itself, and walks its declarations using `Lean.collectAxioms`.
-It permits only `propext`, `Classical.choice`, `Quot.sound`, plus explicitly
-named `native_decide` declarations. `lean-modules` checks that each `.lean` path
-maps to valid dotted Lean module components. `--ascii-only` is intentionally
-opt-in: normal Lean code uses Unicode notation and identifiers.
+Apache-2.0.
