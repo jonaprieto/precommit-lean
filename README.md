@@ -22,6 +22,9 @@ repos:
     args:
     - --target=TermColor.Diagnostics.Properties
     - --namespace=TermColor.Diagnostics.Properties
+  - id: lean-partiality
+    args:
+    - --allow-glob=TermColor/Terminal/Input.lean
 ```
 
 The composite GitHub Action runs the same hooks after a Lean build:
@@ -34,7 +37,10 @@ The composite GitHub Action runs the same hooks after a Lean build:
 
 `lean-style` checks line width, trailing whitespace, and tabs. `lean-modules` validates Lean
 module paths. `lean-axioms` loads a configured Lake target and checks declaration dependencies.
-`--ascii-only` is available for projects that require ASCII source.
+`lean-partiality` reports partial definitions; an allowed path must have a nearby
+`partiality:` rationale comment. Pass one `--allow-glob` per deliberately operational or
+benchmark-only path; all other partial definitions fail the hook. `--ascii-only` is available for
+projects that require ASCII source.
 
 ## License
 

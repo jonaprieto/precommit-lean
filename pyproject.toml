@@ -15,6 +15,7 @@ authors = [{ name = "Jonaprieto" }]
 precommit-lean-style = "precommit_lean.style:main"
 precommit-lean-axioms = "precommit_lean.axioms:main"
 precommit-lean-modules = "precommit_lean.modules:main"
+precommit-lean-partiality = "precommit_lean.partiality:main"
 
 [tool.setuptools.packages.find]
 include = ["precommit_lean*"]
