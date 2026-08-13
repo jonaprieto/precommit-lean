@@ -1,6 +1,8 @@
-import subprocess
 import sys
+import subprocess
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from precommit_lean.modules import module_name, violations
 from precommit_lean.style import ascii_violations
