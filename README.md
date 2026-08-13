@@ -14,7 +14,7 @@ repos:
   - id: check-yaml
 
 - repo: https://github.com/jonaprieto/precommit-lean
-  rev: v0.1.5
+  rev: v0.1.6
   hooks:
   - id: lean-style
   - id: lean-modules
@@ -30,7 +30,7 @@ repos:
 The composite GitHub Action runs the same hooks after a Lean build:
 
 ```yaml
-- uses: jonaprieto/precommit-lean/.github/actions/precommit@v0.1.5
+- uses: jonaprieto/precommit-lean/.github/actions/precommit@v0.1.6
   with:
     token: ${{ secrets.ECOSYSTEM_READ_TOKEN }}
 ```
