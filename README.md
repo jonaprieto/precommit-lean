@@ -2,6 +2,18 @@
 
 Private [pre-commit](https://pre-commit.com/) hooks for Lean 4 repositories.
 
+## Status and review
+
+These libraries are actively evolving and are developed with AI assistance and human review.
+CI and machine-checked proofs provide useful evidence, but do not guarantee correctness,
+soundness, portability, performance, or suitability for every use case. Validate behavior
+and assumptions before relying on a release.
+
+Reviewer feedback is welcome, especially on correctness, proofs, API design, usability,
+portability, performance, documentation, and real-world use. Please use the
+[issue tracker](https://github.com/jonaprieto/precommit-lean/issues) or open a PR with a
+reproducible example and the expected behavior.
+
 ## Use
 
 ```yaml
