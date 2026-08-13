@@ -14,7 +14,7 @@ repos:
   - id: check-yaml
 
 - repo: https://github.com/jonaprieto/precommit-lean
-  rev: v0.1.5
+  rev: v0.1.6
   hooks:
   - id: lean-style
   - id: lean-modules
@@ -22,19 +22,25 @@ repos:
     args:
     - --target=TermColor.Diagnostics.Properties
     - --namespace=TermColor.Diagnostics.Properties
+  - id: lean-partiality
+    args:
+    - --allow-glob=TermColor/Terminal/Input.lean
 ```
 
 The composite GitHub Action runs the same hooks after a Lean build:
 
 ```yaml
-- uses: jonaprieto/precommit-lean/.github/actions/precommit@v0.1.5
+- uses: jonaprieto/precommit-lean/.github/actions/precommit@v0.1.6
   with:
     token: ${{ secrets.ECOSYSTEM_READ_TOKEN }}
 ```
 
 `lean-style` checks line width, trailing whitespace, and tabs. `lean-modules` validates Lean
 module paths. `lean-axioms` loads a configured Lake target and checks declaration dependencies.
-`--ascii-only` is available for projects that require ASCII source.
+`lean-partiality` reports partial definitions; an allowed path must have a nearby
+`partiality:` rationale comment. Pass one `--allow-glob` per deliberately operational or
+benchmark-only path; all other partial definitions fail the hook. `--ascii-only` is available for
+projects that require ASCII source.
 
 ## License
 

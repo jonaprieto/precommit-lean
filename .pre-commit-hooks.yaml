@@ -19,3 +19,10 @@
   entry: precommit-lean-modules
   language: python
   files: \.lean$
+
+- id: lean-partiality
+  name: Lean partiality
+  description: Report partial definitions and require explicit exceptions.
+  entry: precommit-lean-partiality
+  language: python
+  files: \.lean$
