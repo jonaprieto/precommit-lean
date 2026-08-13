@@ -65,7 +65,7 @@ def main() -> int:
         if not olean.is_file():
             print(f"axiom check failed: missing OLean {olean}", file=sys.stderr)
             return 1
-        import_arts[module] = [str(olean)]
+        import_arts[module] = [[str(olean)]]
     setup["name"] = "PrecommitLean.AxiomDriver"
     setup["isModule"] = False
     driver = "\n".join(f"import {module}" for module in modules) + "\n" + template
