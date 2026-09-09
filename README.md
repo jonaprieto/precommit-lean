@@ -52,6 +52,17 @@ module paths. `lean-axioms` loads a configured Lake target and checks declaratio
 benchmark-only path; all other partial definitions fail the hook. `--ascii-only` is available for
 projects that require ASCII source.
 
+## Claude Code command
+
+`.claude/commands/lean-format.md` is a `/lean-format` command for
+[Claude Code](https://claude.com/claude-code). It reformats Lean 4 declarations to a
+diff-minimizing signature layout: name alone on the keyword line, one binder per line
+indented 4, a leading colon before the type, body indented 2, and aligned field columns.
+The pass is whitespace-only, and checks itself by comparing token streams before and
+after and by rejecting any hunk that removes more lines than it adds. Copy the file into
+your own `.claude/commands/` to use it. It pairs with the `lean-style` hook, which
+enforces the width and whitespace rules the layout assumes.
+
 ## License
 
 Apache-2.0.
