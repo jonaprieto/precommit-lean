@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.9 — 2026-09-08
+
+- Let public consumers run the composite action without a private read token.
+
 ## 0.1.8 — 2026-09-08
 
 - Clarify AI-assisted development.
