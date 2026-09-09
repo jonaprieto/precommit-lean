@@ -1,6 +1,11 @@
 # precommit-lean
 
-Private [pre-commit](https://pre-commit.com/) hooks for Lean 4 repositories.
+[pre-commit](https://pre-commit.com/) hooks for Lean 4 repositories.
+
+## Problem
+
+Lean repositories need repeatable style, axiom, and module-name checks without each project
+rebuilding the same local tooling.
 
 ## Development
 
