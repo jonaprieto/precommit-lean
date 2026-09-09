@@ -2,8 +2,9 @@ name: Run pre-commit
 description: Install and run the repository's pinned pre-commit hooks
 inputs:
   token:
-    description: Read token for private precommit-lean access
-    required: true
+    description: Optional read token for private hook repositories
+    required: false
+    default: ""
   hooks:
     description: Space-separated hook IDs to run; empty runs every hook
     required: false
@@ -20,15 +21,16 @@ runs:
       run: |
         python3 -m venv "$RUNNER_TEMP/precommit-lean"
         "$RUNNER_TEMP/precommit-lean/bin/python" -m pip install "pre-commit==4.6.1"
-    - name: Authenticate private hook repository
+    - name: Configure optional private hook access
       shell: bash
       env:
         ECOSYSTEM_READ_TOKEN: ${{ inputs.token }}
         HOME: ${{ runner.temp }}/precommit-lean/home
       run: |
-        test -n "$ECOSYSTEM_READ_TOKEN"
         mkdir -p "$HOME"
-        git config --global url."https://x-access-token:$ECOSYSTEM_READ_TOKEN@github.com/".insteadOf "https://github.com/"
+        if [ -n "$ECOSYSTEM_READ_TOKEN" ]; then
+          git config --global url."https://x-access-token:$ECOSYSTEM_READ_TOKEN@github.com/".insteadOf "https://github.com/"
+        fi
     - name: Run configured hooks
       shell: bash
       env:
