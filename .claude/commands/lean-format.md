@@ -47,7 +47,8 @@ Do not use it when:
     : ∀ <bound>,
       <premise> →
       <premise> →
-      <conclusion> :=
+      <conclusion>
+    :=
   <body>
 ```
 
@@ -84,11 +85,14 @@ Do not use it when:
   operator trails rather than leads, because an operand is inserted above an existing
   operator and the line that gains the operator is the line being inserted anyway. See
   "Reading a signature vertically".
-- `: <type> :=` sits on its own line with the colon leading, and the same goes for `=>`,
-  `|`, `extends`, `deriving` and `where`: an operator that begins a line does not have to
-  be split off the previous one when something is inserted before it.
-- A declaration with no ascribed type puts a bare `:=` where the colon line would go, at
-  the same indent 4. See `abbrev Document` under "Binder groups".
+- The colon leads its own line, and so does the assignment: `:=` and `:= by` sit below the
+  type at indent 4, never trailing the last operand. The same goes for `=>`, `|`,
+  `extends`, `deriving` and `where`. An operator that begins a line does not have to be
+  split off the previous one when something is inserted before it, and appending a premise
+  to a type must not rewrite the line that carries the body's introduction.
+- A declaration with no ascribed type puts that bare `:=` where the colon line would go, at
+  the same indent 4, which is now the same shape typed declarations use. See
+  `abbrev Document` under "Binder groups".
 - `where` joins the header only when everything before it already sits on one line: the
   keyword, the name, and the ascribed type if there is one. `inductive Status where`,
   `structure ObjectId where` and `instance : Ord Segment where` qualify; those gain a
@@ -381,7 +385,8 @@ theorem labels_phase_mono
       ∀ b ∈ evidence,
       a.snapshot.owner = b.snapshot.owner →
       a.snapshot.history.IsPrefix b.snapshot.history →
-      ConcreteTime.le (phaseOfLabel (labels a.snapshot)) (phaseOfLabel (labels b.snapshot)) := by
+      ConcreteTime.le (phaseOfLabel (labels a.snapshot)) (phaseOfLabel (labels b.snapshot))
+    := by
 ```
 
 The nesting is flat on purpose. A `∀` under a `∀` is indented no further than the premise
@@ -414,7 +419,8 @@ theorem storedPayload_congr
     (parentRight :
       left.storedSignature line.parentRight =
         right.storedSignature line.parentRight)
-    : left.storedPayload line = right.storedPayload line := by
+    : left.storedPayload line = right.storedPayload line
+    := by
   simp [storedPayload, parentLeft, parentRight]
 ```
 
@@ -500,7 +506,8 @@ theorem Status.canBecome_trans
     {a b c : Status}
     (hab : a.canBecome b)
     (hbc : b.canBecome c)
-    : a.canBecome c := by
+    : a.canBecome c
+    := by
   exact Nat.le_trans hab hbc
 ```
 
