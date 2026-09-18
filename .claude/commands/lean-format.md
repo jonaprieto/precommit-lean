@@ -69,12 +69,13 @@ Do not use it when:
   modifier, keyword and name, binders, type. A declaration that fits entirely on one line
   keeps its modifier there, under the same permission that leaves any one-liner alone.
 - Signature continuation lines indent by 4, the body by 2. Two different indents, so the
-  eye finds where the type ends without counting. This one is legibility, not diff size.
+  eye finds where the type ends without counting. This one is legibility, not diff size. A
+  `variable` block has no name to align under, so it indents by 2 instead.
 - One binder group per line. A group is one pair of brackets: `[DecidableEq Peer]`,
   `{a b : α}`, `(doc : RawDocument Position Content Peer)`. Adding a group is then an
   inserted line rather than a rewritten one. A defining type parameter list is the
   exception: it splits one *name* per line. See "Binder groups".
-- One operand per line in the ascribed type. Every top-level `→`, `∧`, `∨` and every
+- One operand per line in the ascribed type. Every top-level `→`, `∧`, `∨`, `↔` and every
   comma closing a top-level `∀`/`∃` binder ends its line, and the continuations sit flat at
   indent 6, under the first operand. This holds whether or not the packed form would have
   fitted in 100 columns, for the same reason binders are one per line: the type is read
@@ -88,19 +89,24 @@ Do not use it when:
   be split off the previous one when something is inserted before it.
 - A declaration with no ascribed type puts a bare `:=` where the colon line would go, at
   the same indent 4. See `abbrev Document` under "Binder groups".
-- `where` starts its own line whenever the signature is split across lines, and a header
-  that carries binders is split, so `structure Transaction (Controller : Type) where`
-  becomes the keyword and name, the parameter list, then `where`. Only a header with no
-  binders at all keeps `where` joined: `inductive Status where`, `structure ObjectId where`,
-  `instance : Ord Segment where`. Those declarations gain a binder rarely enough that
-  splitting them now would be churn. Never join a `where` that is already on its own line,
-  whatever the header looks like.
+- `where` joins the header only when everything before it already sits on one line: the
+  keyword, the name, and the ascribed type if there is one. `inductive Status where`,
+  `structure ObjectId where` and `instance : Ord Segment where` qualify; those gain a
+  binder rarely enough that splitting them now would be churn. The moment any piece moves
+  to its own line, whether a binder, an `extends` clause, a type, or a name split off a
+  keyword, `where` follows it down. So `structure Transaction (Controller : Type) where`
+  becomes the keyword and name, the parameter list, then `where`, and a `structure` whose
+  parameters come from a `variable` block still splits, because its name already sits alone
+  on the keyword line. Never join a `where` that is already on its own line.
 - Order: instance binders, implicits, explicits, hypotheses. Within each group keep the
-  order that is already there.
+  order that is already there. Dependency wins over category: when a binder mentions a name
+  that a later category introduces in this same declaration, it stays after it, which is
+  why `abbrev Document` below writes `(Position Content Peer : Type)` before
+  `[PositionSpec Position]`. Writing that one in category order does not compile.
 - Wrap at 100 columns. Nothing derives this number; it is a convention, and it is the rule
   most likely to force a reflow that costs extra diff lines. When a wrap is forced, break
-  at a syntactic boundary (a binder, an arrow, a conjunct), never at whatever token crosses
-  column 100.
+  at a syntactic boundary (a binder, an arrow, a conjunct, or a relation such as `=` or
+  `<`), never at whatever token crosses column 100.
 - `namespace`, `section` and their matching `end` never indent their contents, at any
   nesting depth.
 - Never join lines. This pass splits and re-indents. A declaration already spread over
@@ -125,11 +131,14 @@ without naming them, is out of scope for a bulk pass even when it wraps.
 Three things this gate does not govern:
 
 - Wrapping, and the vertical split. A signature too long for 100 columns has to break
-  whether or not it passes either test, and a signature already written with a leading
-  colon splits its type at the top-level operators whether or not it passes either test.
-  Both break according to "The layout". Many out-of-scope declarations are therefore
-  already in this shape, and stay that way: the rule against joining lines applies to
-  them too.
+  whether or not it passes either test, and any ascribed type splits at its top-level
+  operators whether or not the declaration passes either test, including one currently
+  packed onto the keyword line. This is the one place the pass touches a declaration that
+  does not churn, and it is deliberate: a file where one `A → B → Prop` is split and its
+  neighbour is not reads worse than either convention applied consistently. The single
+  exception is the whole-declaration one-liner under "Leave alone in every case". Both
+  break according to "The layout", so many out-of-scope declarations are already in this
+  shape and stay that way: the rule against joining lines applies to them too.
 - New code. Write new declarations in this layout throughout; the gate exists to limit
   what an existing file's reformatting pass touches.
 - Field, constructor and match columns. Those are aligned wherever they occur. Alignment
@@ -144,7 +153,13 @@ Leave alone in every case:
 - Comment and docstring text, `namespace`/`end`, `import`, `#guard`/`#check`/`#eval`
   lines, `open X in`, and the blank-line structure between declarations.
 - Proof bodies. Tactic blocks keep their own indentation, including `calc` steps,
-  `refine ⟨...⟩` argument lists, and `obtain`/`have`/`let` steps.
+  `refine ⟨...⟩` argument lists, and `obtain`/`have`/`let` steps. Reindenting a signature
+  can break a proof body it never touches: a `let`/`have` chain and a multi-line `{ ... }`
+  or `⟨...⟩` literal are parsed relative to the column of the line that opens them. The
+  token-hash and joined-lines checks in the procedure are whitespace-blind by construction
+  and see nothing; only the re-typecheck catches it, and it has caught it, with
+  `unexpected token 'have'` and `unsolved goals`. Leave such a region alone rather than
+  flatten it, and never skip step 4.
 
 If a wider scope is requested, follow it, but count the declarations first and say how
 many will be touched.
@@ -328,8 +343,8 @@ hoisted instances never reach it. It keeps its own copy.
 ## Reading a signature vertically
 
 Binder lists split by the rules above. The ascribed type splits the same way: it breaks
-after every top-level `→`, `∧`, `∨`, and after the comma that closes a top-level `∀`/`∃`
-binder. One operand per line, operator trailing, conclusion last, everything flat at indent
+after every top-level `→`, `∧`, `∨`, `↔`, and after the comma that closes a top-level
+`∀`/`∃` binder. One operand per line, operator trailing, conclusion last, everything flat at indent
 6. Length does not enter into it, and a chain that would have fitted on the colon line
 splits anyway, so that the whole type is read down the margin the way binders are:
 
@@ -536,7 +551,8 @@ structure Network
     ∀ {i : Nat} {m : Msg},
       Event.deliver m ∈ history i →
       ----------------------------------
-      ∃ j, Event.broadcast m ∈ history j
+      ∃ j,
+      Event.broadcast m ∈ history j
 
   /-- A node delivers its own broadcasts, and does so after broadcasting them. -/
   deliverLocally :
@@ -735,7 +751,8 @@ unreadable.
 ## Forms this guide does not cover
 
 `mutual` blocks, `termination_by`/`decreasing_by` clauses, `where` clauses attached to a
-def body, explicit universe parameters, `deriving instance C for T`, and the
+def body, explicit universe parameters, `deriving instance C for T`, `do` notation in a
+term body, a header carrying `extends` and binders and `deriving` at once, and the
 `macro`/`syntax`/`elab` family do not occur in the codebase this guide was extracted from,
 so there is no tested rule for them. Apply the same three principles and say what you
 chose: keyword and name alone on the first line, one binder group per line at indent 4,
