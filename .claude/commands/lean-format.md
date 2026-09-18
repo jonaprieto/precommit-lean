@@ -285,7 +285,8 @@ instance instDecidableLTLine
     [DecidableEq Peer]
     [DecidableLT Peer]
     (a b : Line Position Content Peer)
-    : Decidable (a < b) :=
+    : Decidable (a < b)
+    :=
   inferInstanceAs (Decidable (_ ∨ _))
 ```
 
@@ -432,7 +433,8 @@ def RawDocument.HasParentIntervals
     [PositionSpec Position]
     [DecidableEq Peer]
     (doc : RawDocument Position Content Peer)
-    : Prop :=
+    : Prop
+    :=
   ∀ line ∈ doc.normalLines,
     ∀ left right,
       doc.line? line.parentLeft = some left →
@@ -499,7 +501,8 @@ def RawDocument.line?
 theorem RawDocument.line?_bottom
     [DecidableEq Peer]
     (doc : RawDocument Position Content Peer)
-    : doc.line? .bottom = some .bottom :=
+    : doc.line? .bottom = some .bottom
+    :=
   rfl
 
 theorem Status.canBecome_trans
@@ -694,7 +697,8 @@ def NormalLine.setStatus
     (line : NormalLine Position Content Peer)
     (next : Status)
     (_ : line.state.status.canBecome next)
-    : NormalLine Position Content Peer :=
+    : NormalLine Position Content Peer
+    :=
   { line with state := { line.state with status := next } }
 ```
 
@@ -791,7 +795,8 @@ def RawDocument.normalLine?
     [DecidableEq Peer]
     (doc : RawDocument Position Content Peer)
     (id : OpId Peer)
-    : Option (NormalLine Position Content Peer) :=
+    : Option (NormalLine Position Content Peer)
+    :=
 ```
 
 Inserting `[DecidableLT Peer]` under `[DecidableEq Peer]` is 1 added, 0 removed, with no
@@ -837,4 +842,3 @@ That argument wins whenever a codebase is stable and read-heavy. This layout is 
 trade in the opposite case: a formalization still under construction, where the typeclass
 discipline is still moving, and where every review is a diff review. Adopt it for that, or
 not at all.
-
