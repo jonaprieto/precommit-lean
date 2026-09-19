@@ -425,8 +425,24 @@ theorem storedPayload_congr
   simp [storedPayload, parentLeft, parentRight]
 ```
 
-In a body, each nested quantifier or implication steps in by 2, and the second operand of
-a trailing `∧`/`∨` steps in 2 past the first:
+In a body, each nested quantifier or implication steps in by 2. A chain of `∧` or `∨`
+does not: its operands sit flat, one per line, at the indent the chain starts on, because
+they are siblings and stepping each one further in says they are nested when they are not:
+
+```lean
+def ReplayState.Enabled
+    (application : Transaction Controller → Prop)
+    (state : ReplayState)
+    (tx : Transaction Controller)
+    : Prop
+    :=
+  tx.Valid application ∧
+  tx.id ∉ state.executed ∧
+  (∀ v ∈ tx.prerequisites, v ∈ state.live) ∧
+  (∀ v ∈ tx.produces, v ∉ state.created)
+```
+
+A quantifier or implication still steps in, because those genuinely nest:
 
 ```lean
 def RawDocument.HasParentIntervals
@@ -440,7 +456,7 @@ def RawDocument.HasParentIntervals
       doc.line? line.parentLeft = some left →
       doc.line? line.parentRight = some right →
       left.position < line.position ∧
-        line.position < right.position
+      line.position < right.position
 ```
 
 ## Alignment
@@ -717,6 +733,41 @@ it one field per line, aligned on `:=`, only when it does not fit.
 Illustrative, with the remaining fields elided. The opening brace carries the first field,
 so a new field is an insertion and the closing brace never moves alone.
 
+### a record literal, not an anonymous constructor
+
+Write the fields out. `⟨false, [⟨tag.source.send, false⟩]⟩` forces the reader to count
+positions against a structure declaration in another file, or to hover for a tooltip, and
+it silently accepts a wrong-but-type-correct permutation of two fields that share a type.
+Named fields say what each value is and fail to elaborate when a name is wrong:
+
+```lean
+  { source :=
+      { send := send
+        record :=
+          { cutMe := false
+            dependencies :=
+              [{ send   := tag.source.send
+                 cutYou := false }] }
+        snapshot := snapshot
+        rank     := tag.source.rank + 1 }
+    rest := tag.nodes }
+```
+
+Three things to read off it. A field whose value is itself a literal puts that literal on
+the next line, indented 2, rather than opening a brace at the end of a crowded line. Each
+block aligns its own `:=` column independently, so a long field name in a nested literal
+does not re-pad its parent. And a lambda whose body becomes a literal moves the body down:
+`fun s =>` on one line, the `{` beginning the next.
+
+The rule is about data. An anonymous constructor that carries a proof stays as it is:
+`⟨.infimum, trivial⟩` for a subtype, `⟨0, by simp⟩` for an existential, `⟨rfl, rfl⟩` for a
+conjunction. Those have no field names worth writing, `property := trivial` says nothing
+`trivial` did not already say, and the proof term is the point rather than the record.
+
+This is the one rule here that a formatter cannot apply for you, because the field names
+live in the structure declaration rather than in the expression being rewritten. Convert by
+hand, or not at all.
+
 ### example with a where body
 
 ```lean
@@ -758,6 +809,23 @@ Modifier, keyword with its precedence, the syntax pattern, then the expansion be
 leading `=>`. The pattern stays on one line even though it can grow: a notation is read as
 a single shape, and splitting it into atoms to save one diff line would make it
 unreadable.
+
+## Naming a binder
+
+Name a bound value after where it comes from, not after its type, whenever the type's
+obvious letter is already doing another job nearby. In one repository `v` meant both an
+`ObjectVersion` drawn from `state.objects` and a `VersionId` drawn from `tx.produces`,
+twice in the same signature:
+
+```lean
+    (outputsHere : ∀ v ∈ tx.produces, v ∈ after.objects.map ObjectVersion.id)
+    (covered : ∀ o ∈ after.objects, o.id ∈ tx.produces ∨
+      CausalVersion (RecordedTransaction application evidence) [] history o.id)
+```
+
+`o` for the object, `v` for the identifier. The rule is not "one letter per type"; it is
+that two different things in one scope must not share a name, and the collection a value
+is drawn from is usually the better hint about which thing it is.
 
 ## Forms this guide does not cover
 
