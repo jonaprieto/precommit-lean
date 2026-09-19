@@ -472,7 +472,25 @@ def ReplayState.Enabled
   (∀ v ∈ tx.produces, v ∉ state.created)
 ```
 
-A quantifier or implication still steps in, because those genuinely nest:
+A run of quantifier prefixes is a chain of siblings too, so it stays flat; what those
+prefixes bind steps in once, and inside it the arrows and disjuncts are flat again:
+
+```lean
+def NonEquivocating
+    (evidence : List (HistoryObservation Controller))
+    (controller : Controller)
+    : Prop
+    :=
+  ∀ a ∈ evidence,
+  ∀ b ∈ evidence,
+    a.controller = controller →
+    b.controller = controller →
+    a.events.IsPrefix b.events ∨
+    b.events.IsPrefix a.events
+```
+
+Two levels, never more: the prefixes, and the matter under them. An implication chain in a
+body steps in once for the same reason:
 
 ```lean
 def RawDocument.HasParentIntervals
@@ -757,11 +775,33 @@ it one field per line, aligned on `:=`, only when it does not fit.
   { id          := line.fixed.id
     position    := p
     parentLeft  := l
-    parentRight := r }
+    parentRight := r
+  }
 ```
 
-Illustrative, with the remaining fields elided. The opening brace carries the first field,
-so a new field is an insertion and the closing brace never moves alone.
+Illustrative, with the remaining fields elided. The opening brace carries the first field
+and the closing brace sits alone at the opening brace's column:
+
+```lean
+  after =
+    { snapshot :=
+        { before.snapshot with
+          id      := next
+          history := before.snapshot.history ++ [tx.id]
+          records := outputs.map (fun o => (o.tag.source.send, o.tag.source.record)) ++
+            before.snapshot.records
+        }
+      objects  := outputs ++ before.objects.filter (fun o => !tx.consumes.contains o.id)
+      received := before.received
+    }
+```
+
+Both halves of that earn their place. The opening brace carrying the first field means a
+new first field is an insertion; the closing brace on its own line means a new last field
+is one too, and the block's extent is visible without counting braces up the page. The same
+goes for `)` and `]`: a delimiter that closes a group spanning lines sits at the column of
+the delimiter that opened it. Closers that meet stack on one line in closing order, so a
+record literal ending an argument list finishes `})` rather than splitting the two.
 
 ### a record literal, not an anonymous constructor
 
@@ -781,10 +821,14 @@ where you want to be told:
           { cutMe := false
             dependencies :=
               [{ send   := tag.source.send
-                 cutYou := false }] }
+                 cutYou := false
+               }]
+          }
         snapshot := snapshot
-        rank     := tag.source.rank + 1 }
-    rest := tag.nodes }
+        rank     := tag.source.rank + 1
+      }
+    rest := tag.nodes
+  }
 ```
 
 Three things to read off it. A field whose value is itself a literal puts that literal on
@@ -843,6 +887,27 @@ Modifier, keyword with its precedence, the syntax pattern, then the expansion be
 leading `=>`. The pattern stays on one line even though it can grow: a notation is read as
 a single shape, and splitting it into atoms to save one diff line would make it
 unreadable.
+
+## Parentheses that answer a question
+
+Parenthesise a sub-expression when a reader would otherwise have to recall a precedence to
+know what it means. `input ∈ genesis ++ past.flatMap Transaction.produces` is correct as
+written, and still makes the reader stop to decide whether `∈` or `++` binds tighter;
+`input ∈ (genesis ++ past.flatMap Transaction.produces)` does not:
+
+```lean
+      (∀ input ∈ tx.prerequisites,
+        input ∈ (genesis ++ past.flatMap Transaction.produces)) ∧
+```
+
+The same applies to an implication sitting inside a conjunct, `(before.send ≠ after.send →
+j < i)`, and to any operator mixed with `∘`, `<|>` or `>>=`. Lean does not need the
+parentheses; the reader does, and they cost one character each.
+
+This is a judgement, not a mechanical rule, so it has a limit: parentheses around a single
+application, or around an operand of a chain that is already split one per line, add noise
+without answering anything. Ask whether a reader could get the grouping wrong. If not,
+leave it alone.
 
 ## Naming a binder
 
