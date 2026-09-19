@@ -1,3 +1,10 @@
+- id: lean-format
+  name: Lean signature layout
+  description: Check Lean declarations against the diff-minimizing signature layout.
+  entry: precommit-lean-format
+  language: python
+  files: \.lean$
+
 - id: lean-style
   name: Lean style
   description: Check Lean files for 100-column lines, trailing whitespace, and tabs.

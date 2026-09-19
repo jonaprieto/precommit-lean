@@ -22,5 +22,7 @@ jobs:
         run: pre-commit run --all-files
       - name: Run self-check
         run: python3 tests/self_check.py
+      - name: Run layout checks
+        run: python3 tests/format_check.py
       - name: Compile package
         run: python3 -m compileall -q precommit_lean
