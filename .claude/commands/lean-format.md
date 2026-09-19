@@ -1,16 +1,35 @@
 ---
 name: lean-format
-description: Reformat Lean 4 declarations to a diff-minimizing layout - name alone on the keyword line, one binder group per line, leading colon, aligned columns. Whitespace only, never changes meaning. Use in projects that already follow this layout, and when writing new declarations there.
+description: Reformat Lean 4 declarations to a reading-first layout - name alone on the keyword line, one binder group per line, leading colon, aligned columns. Whitespace only, never changes meaning. Use in projects that already follow this layout, and when writing new declarations there.
 allowed-tools: Read, Edit, Bash, Grep, Glob
 ---
 
-# Lean 4 diff-minimizing format
+# Lean 4 reading-first format
 
-A layout for Lean 4 declarations that optimizes for the size of the *next* diff rather
-than for the size of the file. It is not Mathlib style, and every difference is
-deliberate. The operational rules come first; the cost model, what the layout costs, and
-the case against it are at the end. Rationale appears inline where a rule would otherwise
-look arbitrary.
+A layout for Lean 4 declarations that optimizes for reading machine-written code with as
+little friction as possible. Most Lean in these repositories is drafted by an agent and
+read by a person deciding whether to trust it, which is the opposite of the usual case
+where code is written once by a person and skimmed later by people who already know it.
+A reader in that position is asking, of every declaration: what are its arguments, what
+does it assume, what does it conclude, and what exactly is being constructed. The layout
+answers those by putting one thing on each line so the eye can run down a column instead
+of parsing a dense line left to right.
+
+File length is not optimized and is not a cost worth weighing here. A longer file that
+says plainly what is going on beats a shorter one that has to be decoded.
+
+Two consequences follow, and they are why the rules look the way they do. Splitting at
+every top-level operator, and putting the assignment, the binders and the annotations each
+on their own line, also happens to make most edits an inserted line rather than a rewritten
+one, so diffs stay small and `git blame` keeps pointing at the commit that wrote each part.
+That is a real benefit and the cost model at the end measures it, but it is a consequence,
+not the goal: where the two disagree, reading wins. And a rule earns its place by telling
+the reader something, which is why named record fields beat anonymous constructors and why
+a bare `v` is not allowed to mean two different things in one scope.
+
+It is not Mathlib style, and every difference is deliberate. The operational rules come
+first; the cost model, what the layout costs, and the case against it are at the end.
+Rationale appears inline where a rule would otherwise look arbitrary.
 
 Every Lean snippet below is copied from a formalization that builds under this layout.
 Some are cut short after the part being discussed, but nothing is retyped, with two
@@ -19,18 +38,23 @@ model.
 
 ## When to use, when not
 
-Use it when the target project has already adopted this layout. It is the better trade
-while a formalization is under construction and its typeclass discipline is still moving,
-because every review there is a diff review.
+Use it when the target project has already adopted this layout, and when writing new
+declarations there. It pays best where code is machine-drafted and human-audited, which is
+where reading friction is the binding constraint rather than typing speed.
 
 Do not use it when:
 
 - The project follows Mathlib style, even if asked. Mathlib's conventions win inside
   Mathlib and in anything that upstreams to it. Say so and stop, rather than converting.
-- The project has stabilized and is now read far more than it is patched. Packed
-  signatures cost less to read; see "The case against".
 - There is no cheap way to typecheck the result (Procedure step 1). A formatting pass you
   cannot verify is a refactor you cannot verify.
+
+Being stable and read-heavy is not a reason to avoid it. An older version of this document
+said it was, on the grounds that packed signatures are quicker to take in; that argument
+belongs to a reader who already knows the code. It does not hold for the reader this layout
+is for, who is auditing a declaration for the first time and needs to see the arguments,
+the premises and the conclusion separately. See "The case against" for the strongest form
+of the opposing view.
 
 ## The layout
 
@@ -119,18 +143,24 @@ Do not use it when:
 
 ## Scope: what to convert
 
-Reformatting raises today's diff to lower tomorrow's, so a bulk pass converts only what
-churns. Convert a declaration when either test passes, judged on the source text, not on
-what Lean elaborates:
+Everything that spans more than one line gets the layout, because everything gets read.
+The one permanent exception is under "Leave alone in every case": a declaration whose whole
+text fits on one line is already as readable as it will get, and splitting it adds lines
+without adding information.
 
-1. Its written signature contains at least one instance binder `[...]`. Those are the
-   binder lists that grow.
+Converting a large existing codebase in one commit is a different question from what the
+layout says. If a staged migration is wanted, these two tests pick the declarations that
+pay back first, because they are the ones whose binder lists grow:
+
+1. Its written signature contains at least one instance binder `[...]`.
 2. It is the defining occurrence of a type parameter family: a `variable` block, or the
    `structure`/`inductive`/`class` that introduces the parameters.
 
-A declaration whose binders are all local values, or that picks up section variables
-without naming them, is out of scope for a bulk pass even when it wraps.
-`instance (a b : Segment) : Decidable (a < b) := ...` stays exactly as it is.
+That is a sequencing aid, not a rule about which code deserves to be readable. An earlier
+version of this document treated it as the rule, on diff-economy grounds; applied to nine
+repositories that way, roughly one declaration in three hundred qualified, and the result
+was files where a converted declaration sat beside an unconverted one of the same shape,
+which reads worse than either convention applied consistently.
 
 Three things this gate does not govern:
 
@@ -738,7 +768,11 @@ so a new field is an insertion and the closing brace never moves alone.
 Write the fields out. `⟨false, [⟨tag.source.send, false⟩]⟩` forces the reader to count
 positions against a structure declaration in another file, or to hover for a tooltip, and
 it silently accepts a wrong-but-type-correct permutation of two fields that share a type.
-Named fields say what each value is and fail to elaborate when a name is wrong:
+It is also the shape that rots quietly: add or reorder a field in the structure later and
+every positional literal either breaks somewhere far away or, worse, keeps elaborating with
+the values now meaning something else. Named fields say what each value is, and when the
+structure changes they fail to elaborate at the site that needs updating, which is exactly
+where you want to be told:
 
 ```lean
   { source :=
@@ -840,7 +874,10 @@ invent a column where the guide does not define one.
 
 ## Why: the cost model
 
-Almost every signature edit has the same shape: a binder is added. Under a compact layout
+This section measures the secondary benefit, not the goal. The goal is the reading
+argument at the top, which no diff count can settle. What follows is the evidence that the
+layout does not cost what it might appear to: almost every signature edit has the same
+shape, a binder is added. Under a compact layout
 that edit rewrites lines that had nothing to do with it; under this layout it is an
 inserted line. Take a real signature and add `[DecidableLT Peer]`.
 
@@ -893,9 +930,10 @@ Two smaller measurements, stated honestly:
   rather than an insertion.
 - Review overhead on the pass itself: a bulk reformat needs the token-hash and
   joined-lines checks before anyone can trust that it changed nothing.
-- Four departures from the thesis, kept for legibility and listed here once: column
-  alignment, the 4-versus-2 indent contrast, the single-line notation pattern, and the
-  premise rule lines. Everywhere else, a rule that costs diff lines is a bug in the rule.
+- Column alignment, the 4-versus-2 indent contrast and the premise rule lines cost diff
+  lines and buy reading. Under an older framing of this document, which argued everything
+  from diff economy, they were listed here as departures from the thesis. They are not
+  departures: reading is the thesis, and they pay for themselves in it.
 
 ## The case against
 
@@ -906,7 +944,16 @@ often than it is patched, and a packed line carries information that splitting d
 on separate lines they look like two unrelated constraints. A packed signature also fits
 on a screen, so a reader takes it in at a glance instead of scrolling.
 
-That argument wins whenever a codebase is stable and read-heavy. This layout is the better
-trade in the opposite case: a formalization still under construction, where the typeclass
-discipline is still moving, and where every review is a diff review. Adopt it for that, or
-not at all.
+That argument wins for a reader who already holds the codebase in their head. `[DecidableEq
+Position] [DecidableLT Position]` on one line genuinely does say "these travel together",
+and splitting them loses that. The honest reply is that this layout is aimed at a different
+reader: one auditing machine-written code they did not write and cannot yet trust, for whom
+"what are the arguments, what is assumed, what is concluded" beats "which constraints
+travel together". Where a grouping really is the point, a comment says so and survives
+reformatting, which the grouping alone does not.
+
+The second half of the argument, that a packed signature fits on a screen, is real and
+unanswered. Measured on one repository, the layout added 25% to total line count, though
+the median declaration stayed the same length: the growth lands on the few signature-heavy
+declarations. If scrolling ever costs more than parsing, that is the measurement to revisit,
+and the rule to revisit first is splitting a short two-operand type.
